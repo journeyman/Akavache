@@ -119,6 +119,14 @@
       <Project>{645e1374-f816-42e3-aac0-23a48277b627}</Project>
       <Name>Akavache.Sqlite3</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\ReactiveUI\ReactiveUI.Testing\ReactiveUI.Testing.csproj">
+      <Project>{e1f2ad19-276e-4d05-a41a-89aa133cecfc}</Project>
+      <Name>ReactiveUI.Testing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ReactiveUI\ReactiveUI\ReactiveUI.csproj">
+      <Project>{292a477b-bb94-43c1-984e-e177ef9fedb7}</Project>
+      <Name>ReactiveUI</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Akavache\Akavache.csproj">
       <Project>{3ef05ca8-ed19-489c-af42-71c4b6507ae7}</Project>
       <Name>Akavache</Name>
