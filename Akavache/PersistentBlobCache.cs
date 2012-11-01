@@ -77,11 +77,7 @@ namespace Akavache
                     .Where(_ => CacheIndex != null)
                     .Throttle(TimeSpan.FromSeconds(30), Scheduler)
                     .SelectMany(_ => FlushCacheIndex(true))
-                    .Subscribe(_ =>
-                    {
-                        this.Log().Debug("Flushing cache");
-                        lastFlushTime = Scheduler.Now;
-                    });
+                    .Subscribe(_ => this.Log().Debug("Flushing cache"));
             }
 
             this.Log().Info("{0} entries in blob cache index", CacheIndex.Count);
