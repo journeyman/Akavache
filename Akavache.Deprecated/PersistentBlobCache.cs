@@ -94,8 +94,10 @@ namespace Akavache.Deprecated
 
 #if WINRT
             CacheIndex = cacheIndex.First();
+            CacheIndexInitialized = Observable.Empty<Unit>();
 #else
             cacheIndex.Subscribe(x => CacheIndex = x);
+            CacheIndexInitialized = cacheIndex.FirstAsync().Select(_ => Unit.Default);
 #endif
 
             flushThreadSubscription = Disposable.Empty;
@@ -111,6 +113,8 @@ namespace Akavache.Deprecated
 
             this.Log().Info("{0} entries in blob cache index", CacheIndex.Count);
         }
+
+        private IObservable<Unit> CacheIndexInitialized { get; set; } 
 
         public IObservable<Unit> Insert(string key, byte[] data, DateTimeOffset? absoluteExpiration = null)
         {
@@ -132,7 +136,8 @@ namespace Akavache.Deprecated
 
             // If we fail trying to fetch/write the key on disk, we want to
             // try again instead of replaying the same failure
-            err.LogErrors("Insert").Subscribe(
+            err.After(CacheIndexInitialized)
+               .LogErrors("Insert").Subscribe(
                 x => CacheIndex[key] = new CacheIndexEntry(Scheduler.Now, absoluteExpiration),
                 ex => Invalidate(key));
 
@@ -186,19 +191,26 @@ namespace Akavache.Deprecated
 
         public IObservable<DateTimeOffset?> GetCreatedAt(string key)
         {
-            CacheIndexEntry value;
-            if (!CacheIndex.TryGetValue(key, out value))
-            {
-                return Observable.Return<DateTimeOffset?>(null);
-            }
+            return CacheIndexInitialized
+                .ContinueAfter(() =>
+                               {
+                                   CacheIndexEntry value;
+                                   if (!CacheIndex.TryGetValue(key, out value))
+                                   {
+                                       return Observable.Return<DateTimeOffset?>(null);
+                                   }
 
-            return Observable.Return<DateTimeOffset?>(value.CreatedAt);
+                                   return Observable.Return<DateTimeOffset?>(value.CreatedAt);
+                               });
+
         }
 
         public IObservable<List<string>> GetAllKeys()
         {
             if (disposed) throw new ObjectDisposedException("PersistentBlobCache");
-            return Observable.Return(CacheIndex.ToList().Where(x => x.Value.ExpiresAt == null || x.Value.ExpiresAt >= BlobCache.TaskpoolScheduler.Now).Select(x => x.Key).ToList());
+
+            return CacheIndexInitialized.ContinueAfter(() => 
+                Observable.Return(CacheIndex.ToList().Where(x => x.Value.ExpiresAt == null || x.Value.ExpiresAt >= BlobCache.TaskpoolScheduler.Now).Select(x => x.Key).ToList()));
         }
 
         public IObservable<Unit> Invalidate(string key)

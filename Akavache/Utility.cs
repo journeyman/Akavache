@@ -224,5 +224,16 @@ namespace Akavache
             This.Connect();
             return This;
         }
+
+        public static IObservable<TRet> ContinueAfter<TRet, T>(this IObservable<T> toWait, Func<IObservable<TRet>> continuation)
+        {
+            return toWait.LastOrDefaultAsync().SelectMany(_ => continuation());
+        }
+
+        public static IObservable<TRet> After<TRet, T>(this IObservable<TRet> continuation, IObservable<T> toWait)
+        {
+            return toWait.ContinueAfter(() => continuation);
+            //return toWait.LastOrDefaultAsync().SelectMany(_ => continuation);
+        }
     }
 }
