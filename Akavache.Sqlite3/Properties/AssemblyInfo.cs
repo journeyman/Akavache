@@ -26,3 +26,6 @@ using System.Runtime.InteropServices;
 // [assembly: AssemblyVersion("1.0.*")]
 
 [assembly: InternalsVisibleTo("Akavache.Tests")]
+
+[assembly: AssemblyVersion("3.99.0")]
+[assembly: AssemblyFileVersion("3.99.0")]
